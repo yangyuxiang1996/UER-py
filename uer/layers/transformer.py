@@ -69,3 +69,43 @@ class GptBlock(nn.Module):
         output = self.feed_forward(output)
         
         return output + hidden
+
+class T5Decoder(nn.Module):
+    def __init__(self, args):
+        super(GptBlock, self).__init__()
+
+        self.self_attn1 = MultiHeadedAttention(
+            args.hidden_size, args.heads_num, args.dropout
+        )
+        self.self_attn2 = MultiHeadedAttention(
+            args.hidden_size, args.heads_num, args.dropout
+        )
+        self.layer_norm_1 = LayerNorm(args.hidden_size)
+        self.layer_norm_2 = LayerNorm(args.hidden_size)
+        self.layer_norm_3 = LayerNorm(args.hidden_size)
+        self.feed_forward = PositionwiseFeedForward(
+            args.hidden_size, args.feedforward_size, args.hidden_act
+        )
+
+    def forward(self, hidden, encoder_hidden, mask):
+        """
+        Args:
+            emb: [batch_size x seq_length x emb_size]
+            hidden: [batch_size x seq_length x emb_size]
+            mask: [batch_size x 1 x seq_length x seq_length]
+        Returns:
+            output: [batch_size x seq_length x hidden_size]
+        """
+        x = hidden
+        inter = self.layer_norm_1(hidden)
+        inter = self.self_attn(inter, inter, inter, mask)
+        inter = x + inter
+        x = inter
+        inter = self.layer_norm_2(inter)
+        inter = self.self_attn(encoder_hidden, encoder_hidden, inter, mask)
+        inter = x + inter
+        x = inter
+        inter = self.layer_norm_3(inter)
+        inter = self.feed_forward(inter)
+
+        return x + inter
