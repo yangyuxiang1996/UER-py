@@ -4,7 +4,7 @@ import torch.nn as nn
 from uer.layers.layer_norm import LayerNorm
 from uer.layers.position_ffn import PositionwiseFeedForward
 from uer.layers.multi_headed_attn import MultiHeadedAttention
-from uer.layers.transformer import GptBlock
+from uer.layers.transformer import *
 
 class T5Encoder(nn.Module):
     """
@@ -13,8 +13,11 @@ class T5Encoder(nn.Module):
     def __init__(self, args):
         super(T5Encoder, self).__init__()
         self.layers_num = args.layers_num
-        self.block = nn.ModuleList([
+        self.encoder_block = nn.ModuleList([
             GptBlock(args) for _ in range(self.layers_num)
+        ])
+        self.decoder_block = nn.ModuleList([
+            T5Decoder(args) for _ in range(self.layers_num)
         ])
         self.layer_norm = LayerNorm(args.hidden_size)
 
@@ -38,9 +41,20 @@ class T5Encoder(nn.Module):
             unsqueeze(1)
 
         mask = mask.float()
-        mask = (1.0 - mask) * -10000.0
+        encoder_mask = (1.0 - mask) * -10000.0
 
         hidden = emb
         for i in range(self.layers_num):
-            hidden = self.block[i](hidden, mask)
-        return (emb, self.layer_norm(hidden))
+            hidden = self.block[i](hidden, encoder_mask)
+        encoder_hidden =  self.layer_norm(hidden)
+
+        mask = torch.ones(seq_length, seq_length, device=emb.device)
+        mask = torch.tril(mask)
+        mask = (1.0 - mask) * -10000
+        decoder_mask = mask.repeat(batch_size, 1, 1, 1)
+
+        hidden = emb
+        for i in range(self.layers_num):
+            hidden = self.block[i](hidden, encoder_hidden, decoder_mask)
+
+        return hidden

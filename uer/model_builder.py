@@ -6,6 +6,7 @@ from uer.encoders.birnn_encoder import BilstmEncoder
 from uer.encoders.cnn_encoder import CnnEncoder, GatedcnnEncoder
 from uer.encoders.attn_encoder import AttnEncoder
 from uer.encoders.gpt_encoder import *
+from uer.encoders.t5_encoder import *
 from uer.encoders.mixed_encoder import RcnnEncoder, CrnnEncoder
 from uer.encoders.synt_encoder import SyntEncoder
 from uer.targets.bert_target import BertTarget
