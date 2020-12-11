@@ -19,7 +19,7 @@ class T5Target(nn.Module):
         ])
 
         self.softmax = nn.LogSoftmax(dim=-1)
-        self.output_layer = nn.Linear(self.hidden_size, self.vocab_size)
+        self.output_layer = nn.Linear(self.hidden_size, self.vocab_size, bias = False)
 
     def forward(self, context, tgt):
         """
@@ -32,7 +32,7 @@ class T5Target(nn.Module):
             correct: Number of words that are predicted correctly.
             denominator: Number of predicted words.
         """
-        hidden, encoder_hidden = context
+        emb, encoder_hidden = context
 
         batch_size, seq_length, _ = emb.size()
         # Generate mask according to segment indicators.
@@ -42,10 +42,12 @@ class T5Target(nn.Module):
         mask = (1.0 - mask) * -10000
         mask = mask.repeat(batch_size, 1, 1, 1)
 
+        hidden = emb
+
         for i in range(self.layers_num):
             hidden = self.block[i](hidden, encoder_hidden, mask)
 
-        memory_bank = hidden
+        memory_bank = hidden / math.sqrt(self.hidden_size)
 
         # Language modeling (LM) with full softmax prediction.
         output = self.output_layer(memory_bank)

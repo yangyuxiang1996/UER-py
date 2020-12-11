@@ -16,9 +16,7 @@ class T5Encoder(nn.Module):
         self.encoder_block = nn.ModuleList([
             GptBlock(args) for _ in range(self.layers_num)
         ])
-        self.decoder_block = nn.ModuleList([
-            T5Decoder(args) for _ in range(self.layers_num)
-        ])
+
         self.layer_norm = LayerNorm(args.hidden_size)
 
     def forward(self, emb, seg):
@@ -45,16 +43,8 @@ class T5Encoder(nn.Module):
 
         hidden = emb
         for i in range(self.layers_num):
-            hidden = self.block[i](hidden, encoder_mask)
-        encoder_hidden =  self.layer_norm(hidden)
+            hidden = self.encoder_block[i](hidden, encoder_mask)
 
-        mask = torch.ones(seq_length, seq_length, device=emb.device)
-        mask = torch.tril(mask)
-        mask = (1.0 - mask) * -10000
-        decoder_mask = mask.repeat(batch_size, 1, 1, 1)
+        hidden =  self.layer_norm(hidden)
 
-        hidden = emb
-        for i in range(self.layers_num):
-            hidden = self.block[i](hidden, encoder_hidden, decoder_mask)
-
-        return hidden
+        return (emb, hidden)

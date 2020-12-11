@@ -72,7 +72,7 @@ class GptBlock(nn.Module):
 
 class T5Decoder(nn.Module):
     def __init__(self, args):
-        super(GptBlock, self).__init__()
+        super(T5Decoder, self).__init__()
 
         self.self_attn1 = MultiHeadedAttention(
             args.hidden_size, args.heads_num, args.dropout
@@ -98,11 +98,11 @@ class T5Decoder(nn.Module):
         """
         x = hidden
         inter = self.layer_norm_1(hidden)
-        inter = self.self_attn(inter, inter, inter, mask)
+        inter = self.self_attn1(inter, inter, inter, mask)
         inter = x + inter
         x = inter
         inter = self.layer_norm_2(inter)
-        inter = self.self_attn(encoder_hidden, encoder_hidden, inter, mask)
+        inter = self.self_attn2(encoder_hidden, encoder_hidden, inter, mask)
         inter = x + inter
         x = inter
         inter = self.layer_norm_3(inter)
