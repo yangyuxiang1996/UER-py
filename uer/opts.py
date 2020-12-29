@@ -2,7 +2,7 @@ def finetune_opts(parser):
     # Path options.
     parser.add_argument("--pretrained_model_path", default=None, type=str,
                         help="Path of the pretrained model.")
-    parser.add_argument("--output_model_path", default=None, type=str,
+    parser.add_argument("--output_model_path", default="./models/finetuned_model.bin", type=str,
                         help="Path of the output model.")
     parser.add_argument("--vocab_path", default=None, type=str,
                         help="Path of the vocabulary file.")
@@ -18,7 +18,7 @@ def finetune_opts(parser):
                         help="Path of the config file.")
 
     # Model options.
-    parser.add_argument("--embedding", choices=["word", "word_pos", "word_pos_seg"], default="word_pos_seg",
+    parser.add_argument("--embedding", choices=["word", "word_pos", "word_pos_seg", "word_sinusoidal"], default="word_pos_seg",
                         help="Emebdding type.")
     parser.add_argument("--encoder", choices=["transformer", "rnn", "lstm", "gru", \
                                               "birnn", "bilstm", "bigru", \
